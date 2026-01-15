@@ -32,8 +32,14 @@ export default function Home() {
           <Badge variant="outline" className="px-4 py-1.5 text-sm rounded-full backdrop-blur-sm border-primary/20 bg-primary/10 text-primary animate-fade-in">
             ✨ 100% Private • Secure
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-primary via-foreground to-primary/50 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            docpro:<br />Perfect ID Photos, Instantly.
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-500 to-primary font-black italic tracking-tighter">
+              docpro:
+            </span>
+            <br />
+            <span className="bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">
+              Perfect ID Photos, Instantly.
+            </span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
             Stop struggling with complicated tools. Create compliant photos for any official document in seconds.
