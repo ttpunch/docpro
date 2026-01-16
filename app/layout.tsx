@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     creator: "@idphotogen",
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.png",
   },
 };
 
