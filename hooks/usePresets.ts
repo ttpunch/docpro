@@ -4,29 +4,41 @@ import { PhotoSpec } from '@/lib/types'
 
 export function usePresets() {
     const [presets, setPresets] = useState<PhotoSpec[]>([])
+    const [requests, setRequests] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        async function fetchPresets() {
+        async function fetchData() {
             const supabase = createClient()
-            const { data, error } = await supabase
+
+            // Fetch Presets
+            const { data: presetsData, error: presetsError } = await supabase
                 .from('photo_specs')
                 .select('*')
                 .eq('is_current', true)
                 .eq('is_active', true)
                 .order('sort_order', { ascending: true })
 
-            if (error) {
-                setError(error.message)
+            // Fetch Implemented Requests
+            const { data: requestsData, error: requestsError } = await supabase
+                .from('feature_requests')
+                .select('*')
+                .eq('status', 'implemented')
+                .order('created_at', { ascending: false })
+                .limit(6)
+
+            if (presetsError || requestsError) {
+                setError(presetsError?.message || requestsError?.message || 'Error fetching data')
             } else {
-                setPresets(data as PhotoSpec[])
+                setPresets(presetsData as PhotoSpec[])
+                setRequests(requestsData || [])
             }
             setLoading(false)
         }
 
-        fetchPresets()
+        fetchData()
     }, [])
 
-    return { presets, loading, error }
+    return { presets, requests, loading, error }
 }

@@ -11,7 +11,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 
 export default function Home() {
-  const { presets, loading, error } = usePresets()
+  const { presets, requests, loading, error } = usePresets()
   const [search, setSearch] = useState('')
 
   const filtered = presets.filter(p =>
@@ -66,7 +66,7 @@ export default function Home() {
           <div className="text-center py-20 text-muted-foreground">Loading specifications...</div>
         ) : error ? (
           <div className="text-center py-20 text-red-500">Error: {error}</div>
-        ) : (
+        ) : (<>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((preset, index) => (
               <motion.div
@@ -110,12 +110,59 @@ export default function Home() {
                   <p className="text-sm text-muted-foreground max-w-[200px] leading-relaxed">
                     New document formats, AI background removal, and more coming soon!
                   </p>
-                  <Badge variant="outline" className="mt-6 border-primary/30 text-primary/70">STAY TUNED</Badge>
+                  <Button variant="outline" className="mt-6 border-primary/30 text-primary hover:bg-primary/10" asChild>
+                    <Link href="/request">Request a Feature</Link>
+                  </Button>
                 </Card>
               </motion.div>
             )}
           </div>
-        )}
+
+          {/* Requested Features Section */}
+          {requests && requests.length > 0 && (
+            <div className="mt-20 user-request-section">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="h-8 w-1 bg-primary rounded-full"></div>
+                <h2 className="text-3xl font-bold tracking-tight">Requested Features/Presets</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {requests.map((req, i) => (
+                  <motion.div
+                    key={req.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + (i * 0.1) }}
+                  >
+                    <Card className="h-full bg-muted/30 border-primary/20 hover:border-primary/40 transition-colors">
+                      <CardHeader>
+                        <div className="flex justify-between items-start mb-2">
+                          <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5">
+                            {req.type === 'preset' ? 'New Preset' : 'Feature'}
+                          </Badge>
+                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800">
+                            Implemented
+                          </Badge>
+                        </div>
+                        <CardDescription className="line-clamp-3 text-base text-foreground/80">
+                          "{req.description}"
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <FileCheck className="h-4 w-4" />
+                          <span>Request fulfilled</span>
+                          <span className="mx-1">•</span>
+                          <span>{new Date(req.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>)}
       </section>
     </div>
   )

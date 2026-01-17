@@ -4,12 +4,13 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
-import { LayoutDashboard, FileImage, LogOut, Settings } from 'lucide-react'
+import { LayoutDashboard, FileImage, LogOut, Settings, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
     { name: 'Presets', href: '/admin/presets', icon: FileImage },
+    { name: 'Requests', href: '/admin/requests', icon: MessageSquare },
 ]
 
 export function AdminSidebar() {
