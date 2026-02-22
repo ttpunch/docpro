@@ -1,10 +1,10 @@
 'use client'
 
 import { PhotoSpec } from '@/lib/types'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Upload, AlertCircle, CheckCircle, Download, ArrowLeft, Loader2, Crop } from 'lucide-react'
+import { Upload, AlertCircle, Download, ArrowLeft, Loader2, Crop } from 'lucide-react'
 import Link from 'next/link'
 import { usePhotoProcessor } from '@/hooks/usePhotoProcessor'
 import Cropper, { Area, Point } from 'react-easy-crop'
@@ -21,6 +21,7 @@ export default function PhotoProcessor({ spec }: { spec: PhotoSpec }) {
     const [customHeight, setCustomHeight] = useState(spec.height_px)
     const [customMinSize, setCustomMinSize] = useState(spec.file_size_min_kb)
     const [customMaxSize, setCustomMaxSize] = useState(spec.file_size_max_kb)
+    const [customFileName, setCustomFileName] = useState('custom-photo')
 
     // Derived spec object that updates with custom values
     const effectiveSpec = {
@@ -42,7 +43,8 @@ export default function PhotoProcessor({ spec }: { spec: PhotoSpec }) {
         revertToCrop,
         processing,
         error,
-        initialZoom
+        initialZoom,
+        processedSizeKb
     } = usePhotoProcessor(effectiveSpec)
 
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -138,6 +140,17 @@ export default function PhotoProcessor({ spec }: { spec: PhotoSpec }) {
                                 className="h-8 mt-1"
                             />
                         </div>
+                        <div className="md:col-span-4">
+                            <Label htmlFor="fileName" className="text-xs text-muted-foreground">File Name (without extension)</Label>
+                            <Input
+                                id="fileName"
+                                type="text"
+                                value={customFileName}
+                                onChange={(e) => setCustomFileName(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
+                                placeholder="custom-photo"
+                                className="h-8 mt-1"
+                            />
+                        </div>
                     </div>
                 )}
             </div>
@@ -190,7 +203,12 @@ export default function PhotoProcessor({ spec }: { spec: PhotoSpec }) {
                                             <Button variant="secondary" onClick={() => {
                                                 const link = document.createElement('a')
                                                 link.href = processedImage
-                                                link.download = `${spec.code}-photo.jpg`
+
+                                                let downloadName = `${spec.code}-photo.jpg`
+                                                if (spec.type === 'custom') {
+                                                    downloadName = `${customFileName || 'custom-photo'}.jpg`
+                                                }
+                                                link.download = downloadName
                                                 link.click()
                                             }}>
                                                 <Download className="mr-2 h-4 w-4" /> Download Photo
@@ -286,9 +304,17 @@ export default function PhotoProcessor({ spec }: { spec: PhotoSpec }) {
                                 <span className="font-mono font-medium">{effectiveSpec.width_px} × {effectiveSpec.height_px} px</span>
                             </div>
                             <div className="flex justify-between items-center py-2 border-b border-dashed">
-                                <span className="text-muted-foreground">File Size</span>
+                                <span className="text-muted-foreground">File Size Limit</span>
                                 <span className="font-mono font-medium">{effectiveSpec.file_size_min_kb} - {effectiveSpec.file_size_max_kb} KB</span>
                             </div>
+                            {processedSizeKb !== null && (
+                                <div className="flex justify-between items-center py-2 border-b border-dashed">
+                                    <span className="text-muted-foreground">Actual Result Size</span>
+                                    <span className={`font-mono font-medium ${processedSizeKb > effectiveSpec.file_size_max_kb ? 'text-red-500 font-bold' : 'text-green-500'}`}>
+                                        ~{processedSizeKb} KB
+                                    </span>
+                                </div>
+                            )}
                             <div className="flex justify-between items-center py-2 border-b border-dashed">
                                 <span className="text-muted-foreground">Format</span>
                                 <span className="font-mono font-medium">JPG / JPEG</span>

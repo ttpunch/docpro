@@ -21,9 +21,9 @@ export function usePhotoProcessor(spec: PhotoSpec) {
             const img = await loadImage(file)
             setOriginalImage(img)
             setInitialZoom(1)
-        } catch (e: any) {
+        } catch (e) {
             console.error('Photo loading error:', e)
-            setError(e.message || "Failed to load image")
+            setError(e instanceof Error ? e.message : "Failed to load image")
         } finally {
             setProcessing(false)
         }
@@ -37,7 +37,21 @@ export function usePhotoProcessor(spec: PhotoSpec) {
         try {
             await new Promise(r => setTimeout(r, 100))
             const canvas = cropImageToSpec(originalImage, spec.width_px, spec.height_px, cropArea)
-            setProcessedImage(canvas.toDataURL('image/jpeg', quality))
+
+            let currentQuality = quality
+            let resultDataUrl = canvas.toDataURL('image/jpeg', currentQuality)
+            let resultSizeKb = Math.round(((resultDataUrl.length - 22) * 3 / 4) / 1024)
+
+            // Iterative compression to strictly meet the max size requirement
+            if (spec.file_size_max_kb && spec.file_size_max_kb > 0) {
+                while (resultSizeKb > spec.file_size_max_kb && currentQuality > 0.1) {
+                    currentQuality -= 0.05
+                    resultDataUrl = canvas.toDataURL('image/jpeg', currentQuality)
+                    resultSizeKb = Math.round(((resultDataUrl.length - 22) * 3 / 4) / 1024)
+                }
+            }
+
+            setProcessedImage(resultDataUrl)
 
             // Log success
             try {
@@ -50,14 +64,14 @@ export function usePhotoProcessor(spec: PhotoSpec) {
                 console.error("Failed to log success:", logError)
             }
 
-        } catch (e: any) {
+        } catch (e) {
             console.error('Crop error:', e)
             setError("Failed to apply crop")
 
             // Log error
             try {
                 const { logProcessing } = await import('@/actions/analytics')
-                logProcessing({ spec_code: spec.code, status: 'error', error_message: e.message || "Unknown error" })
+                logProcessing({ spec_code: spec.code, status: 'error', error_message: e instanceof Error ? e.message : "Unknown error" })
             } catch (logError) {
                 console.error("Failed to log error:", logError)
             }
@@ -89,6 +103,7 @@ export function usePhotoProcessor(spec: PhotoSpec) {
         processing,
         error,
         initialCrop,
-        initialZoom
+        initialZoom,
+        processedSizeKb: processedImage ? Math.round(((processedImage.length - 22) * 3 / 4) / 1024) : null
     }
 }
